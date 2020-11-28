@@ -21,12 +21,13 @@ if 'mop.json' in file_lists:
     if mop_db['language'] == 'en':
         down_help = 'Download the file'
         dir_help = 'Set the default download folder'
-        down_text = '开始下载 -->'
+        down_text = 'Downloading now -->'
+        down_text = 'Downloading now -->'
         successful = 'Success'
     else:
         down_help = '下载文件'
         dir_help = '设置默认下载文件夹'
-        down_text = 'Downloading now -->'
+        down_text = '开始下载 -->'
         successful = '成功'
     mop_db.close()
 else:
@@ -37,24 +38,29 @@ else:
 parser = argparse.ArgumentParser(description='YouTubeDown-MacOS-11')
 
 parser.add_argument('-d', type=str, help=down_help, nargs='+')
-parser.add_argument('-dir', type=str, help=dir_help, nargs=1)
+parser.add_argument('-dir', type=str, help=dir_help, nargs='?')
 
 args = parser.parse_args()
 
 if args.d:
-    down_url_list = str(args.d[0]).split('&&')
     mop_db = shelve.open(mop_db_path + 'mop')
-    for url in down_url_list:
+    for url in list(args.d):
         print(down_text+' '+url)
         if len(args.d) == 2:
-            YouTube(url).streams.first().download(os.path.expanduser(str(args.d[1])))
+            YouTube(url).streams.first().download(args.d[1])
         else:
-            path = mop_db_path['save_path']
+            path = mop_db['save_path']
             YouTube(url).streams.first().download(os.path.expanduser(path))
     print(successful)
     mop_db.close()
 
-if args.dir:
+flag = False
+if sys.argv[1] == '-dir':
+    flag = True
+
+if flag:
     mop_db = shelve.open(mop_db_path + 'mop')
-    mop_db_path['save_path'] = str(args.dir[0])
+    url = input('URL: ')
+    mop_db['save_path'] = url
+    mop_db.close()
     print(successful)
